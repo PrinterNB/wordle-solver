@@ -1,0 +1,14 @@
+# Scratch build inputs (used only by scripts/build-words.mjs to regenerate js/words.js)
+.npmwordle/
+.full_words.txt
+wordle-words-*.tgz
+nyt_wordle_list.py
+.wordle_stats.json
+nyt.json
+nyt_list.py
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
