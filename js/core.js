@@ -5,9 +5,10 @@
  * exact same way the real game does, and (b) find the next guess that
  * maximizes information gain (Shannon entropy over the candidate set).
  *
- * The "answers" list (2,315 words) is the pool the secret is drawn from.
- * The "guesses" list (14,855 words) is every word the keyboard will accept;
- * every answer is also a valid guess, but a guess need not be an answer.
+ * The "answers" list is the pool the secret is drawn from: every word NYT
+ * has actually used as a puzzle (the classic 2,315 plus every new answer
+ * since). The "guesses" list is every word the keyboard will accept; every
+ * answer is also a valid guess, but a guess need not be an answer.
  */
 (function (global) {
   "use strict";
@@ -17,8 +18,8 @@
     throw new Error("js/words.js must load before core.js");
   }
 
-  const answers = src.answers; // 2,315
-  const guesses = src.guesses; // 14,855
+  const answers = src.answers; // every word NYT has used as a puzzle
+  const guesses = src.guesses; // every word the keyboard accepts
   const N = answers.length;
   const G = guesses.length;
 
@@ -47,7 +48,7 @@
   for (let i = 0; i < G; i++) gusCode[i] = toCode(guesses[i]);
 
   // Indices of every guess, and of the guesses that are also answer words
-  // (the solver's pool: all 2,315 official answers, so the live game always
+  // (the solver's pool: every official answer, so the live game always
   // accepts a suggestion).
   const allGuessIndices = [];
   for (let i = 0; i < G; i++) allGuessIndices.push(i);

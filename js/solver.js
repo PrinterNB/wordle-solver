@@ -99,9 +99,9 @@
     computing.classList.remove("hidden");
     commitBtn.disabled = true;
     // Let the spinner paint before the (first) ~600 ms sweep.
-    // Always draw from the official 2,315-word answer list — every one of
-    // those words is accepted by the live NYT game, unlike some of the
-    // obscure extras in the full 14,855-word guess dictionary.
+    // Always draw from the official answer list — every word in it has been
+    // a real NYT puzzle, so the live game is guaranteed to accept it, unlike
+    // the obscure extras in the wider guess dictionary.
     W.computeBestAsync(
       candidates,
       { commonOnly: true, top: 5 },

@@ -1,21 +1,47 @@
 // Builds js/words.js from:
 //  1. The wordle-words npm package (classic NYT list: answers + rest) -> .npmwordle/package/index.mjs
 //  2. The tabatkins/wordle-list full allowed-guess list -> .full_words.txt
+//  3. (optional, current) The live game's full accepted dictionary -> .live_dictionary.json (JSON array)
+//  4. (optional, current) Every word NYT has actually used as the answer -> .answer_history.txt
 // Run: node scripts/build-words.mjs
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+
+const read = (p) =>
+  existsSync(new URL(p, import.meta.url))
+    ? readFileSync(new URL(p, import.meta.url), "utf8")
+    : null;
 
 const mod = await import("../.npmwordle/package/index.mjs");
-const tabatkins = readFileSync(
-  new URL("../.full_words.txt", import.meta.url),
-  "utf8",
+const tabatkins = (
+  read("../.full_words.txt") ?? ""
 )
   .split(/\r?\n/)
   .filter(Boolean)
   .map((w) => w.trim().toLowerCase());
 
-const answers = [...new Set(mod.answers.map((w) => w.toLowerCase()))].sort();
+// The live game's accepted dictionary (JSON array of words), if we have a
+// fresh scrape of it. Supersedes the 2021 snapshot as the guess vocabulary.
+const liveDictionary =
+  JSON.parse(read("../.live_dictionary.json") ?? "[]").map((w) =>
+    String(w).toLowerCase(),
+  );
+
+// Every word NYT has used as the puzzle answer, so the candidate pool covers
+// new answers that postdate the classic 2,315-word list. Format per line:
+//   WORD PUZZLE# MM/DD/YY   (e.g. "SCUBA 1928 09/29/26")
+const historyWords = (read("../.answer_history.txt") ?? "")
+  .split(/\r?\n/)
+  .map((line) => line.trim().match(/^([A-Za-z]{5})\b/)?.[1])
+  .filter(Boolean)
+  .map((w) => w.toLowerCase());
+
+const answers = [...new Set([...mod.answers, ...historyWords].map((w) => w.toLowerCase()))].sort();
 const guesses = [
-  ...new Set([...mod.all, ...tabatkins].map((w) => w.toLowerCase())),
+  ...new Set(
+    [...mod.all, ...tabatkins, ...liveDictionary, ...historyWords].map((w) =>
+      w.toLowerCase(),
+    ),
+  ),
 ].sort();
 
 const guessSet = new Set(guesses);

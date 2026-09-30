@@ -20,12 +20,13 @@ The solver plays **maximum information gain** (Shannon entropy): on each turn it
 scores every allowed guess by the entropy of the feedback it would produce over
 the remaining possible answers, and picks the guess that maximizes that.
 
-- **Vocabulary:** the solver suggests only from the official **2,315** words NYT
-  has used as answers — every one of them is guaranteed to be accepted by the
-  live game. (The wider 14,855-word guess dictionary is still used for
-  validating what you type; some of its obscure extras have been dropped from
-  the current game, so it's not a safe pool to suggest from.)
-- **Candidate pool:** the same **2,315** words NYT has actually used as answers.
+- **Vocabulary:** the solver suggests only from the official answer list — every
+  word NYT has actually used as a puzzle (**2,376** words) — which is guaranteed
+  to be accepted by the live game. (The wider **14,856**-word guess dictionary is
+  still used to validate what you type, but it's not a safe pool to suggest
+  from because it also contains obscure words the live game may reject.)
+- **Candidate pool:** the same **2,376** words NYT has actually used as answers,
+  so the secret can't be something the solver has never heard of.
 - **Feedback** uses the exact two-pass Wordle scoring (greens first, then
   yellows left-to-right against a shared letter pool), so duplicate letters are
   handled identically to the real game.
@@ -33,25 +34,27 @@ the remaining possible answers, and picks the guess that maximizes that.
 
 ### Measured performance
 
-Swept over **all 2,315** possible answers, playing its own advice:
+Swept over **all 2,376** possible answers, playing its own advice:
 
 | Metric | Value |
 | --- | --- |
-| Average guesses to win | **3.67** |
+| Average guesses to win | **3.68** |
 | Wins within 5 guesses | **99.9%** |
 | Wins within 6 (standard game) | **100%** |
-| Worst case | 6 guesses (`BOXER`) |
+| Worst case | 6 guesses (`HOVER`) |
 
-The one-time cost of building the 14,855 × 2,315 signature table (~600 ms)
+The one-time cost of building the 14,856 × 2,376 signature table (~600 ms)
 happens once behind the spinner; every guess after that is a fast array lookup
 (~30 ms over the full pool, single-digit ms on a typical narrowed set).
 
 ## Word lists
 
-- **Answers** (2,315): the standard NYT answer pool.
-- **Guesses** (14,855): the union of that pool's "rest" list and the full
-  allowed-guess list from [`tabatkins/wordle-list`](https://github.com/tabatkins/wordle-list),
-  taken straight from the game's source. Every answer is a valid guess.
+- **Answers** (2,376): every word NYT has actually used as a puzzle — the
+  classic 2,315-word pool plus the new answers NYT has added since (the list
+  is still being replenished as of 2026).
+- **Guesses** (14,856): the full dictionary the live game's keyboard accepts,
+  scraped directly from the game's own JavaScript bundle. Every answer is a
+  valid guess.
 
 `js/words.js` is **generated** and checked in so the site works with zero setup.
 To regenerate it after updating the sources, run:
@@ -60,8 +63,8 @@ To regenerate it after updating the sources, run:
 node scripts/build-words.mjs
 ```
 
-(That script reads the scratch inputs `.npmwordle/…` and `.full_words.txt`, both
-git-ignored.)
+(That script reads the scratch inputs `.npmwordle/…`, `.full_words.txt`,
+`.live_dictionary.json`, and `.answer_history.txt`, all git-ignored.)
 
 ## Project layout
 

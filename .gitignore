@@ -1,6 +1,8 @@
 # Scratch build inputs (used only by scripts/build-words.mjs to regenerate js/words.js)
 .npmwordle/
 .full_words.txt
+.live_dictionary.json
+.answer_history.txt
 wordle-words-*.tgz
 nyt_wordle_list.py
 .wordle_stats.json
