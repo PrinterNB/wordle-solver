@@ -47,7 +47,8 @@
   for (let i = 0; i < G; i++) gusCode[i] = toCode(guesses[i]);
 
   // Indices of every guess, and of the guesses that are also answer words
-  // (used by the "common words only" mode).
+  // (the solver's pool: all 2,315 official answers, so the live game always
+  // accepts a suggestion).
   const allGuessIndices = [];
   for (let i = 0; i < G; i++) allGuessIndices.push(i);
   const commonGuessIndices = [];

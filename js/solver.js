@@ -18,7 +18,6 @@
   const wordInput = $("solver-word");
   const commitBtn = $("solver-commit");
   const resetBtn = $("solver-reset");
-  const commonBox = $("solver-common");
   const msgEl = $("solver-msg");
   const historyEl = $("solver-history");
   const countEl = $("solver-count");
@@ -100,9 +99,12 @@
     computing.classList.remove("hidden");
     commitBtn.disabled = true;
     // Let the spinner paint before the (first) ~600 ms sweep.
+    // Always draw from the official 2,315-word answer list — every one of
+    // those words is accepted by the live NYT game, unlike some of the
+    // obscure extras in the full 14,855-word guess dictionary.
     W.computeBestAsync(
       candidates,
-      { commonOnly: commonBox.checked, top: 5 },
+      { commonOnly: true, top: 5 },
       (alts) => {
         computing.classList.add("hidden");
         commitBtn.disabled = false;
@@ -190,13 +192,6 @@
   });
   commitBtn.addEventListener("click", commitGuess);
   resetBtn.addEventListener("click", newRound);
-  commonBox.addEventListener("change", () => {
-    if (!solvedWord && candidates.length > 1) {
-      reportColors = FRESH();
-      renderReport();
-      computeNextBest();
-    }
-  });
 
   newRound();
 })();

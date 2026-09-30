@@ -20,10 +20,12 @@ The solver plays **maximum information gain** (Shannon entropy): on each turn it
 scores every allowed guess by the entropy of the feedback it would produce over
 the remaining possible answers, and picks the guess that maximizes that.
 
-- **Vocabulary:** the full **14,855** words the NYT Wordle keyboard accepts — not
-  just answer words — so it can play high-information obscure openers like
-  `TARSE`, `SOARE`, `ROATE` that a restricted list can't.
-- **Candidate pool:** the **2,315** words NYT has actually used as answers.
+- **Vocabulary:** the solver suggests only from the official **2,315** words NYT
+  has used as answers — every one of them is guaranteed to be accepted by the
+  live game. (The wider 14,855-word guess dictionary is still used for
+  validating what you type; some of its obscure extras have been dropped from
+  the current game, so it's not a safe pool to suggest from.)
+- **Candidate pool:** the same **2,315** words NYT has actually used as answers.
 - **Feedback** uses the exact two-pass Wordle scoring (greens first, then
   yellows left-to-right against a shared letter pool), so duplicate letters are
   handled identically to the real game.
@@ -35,14 +37,14 @@ Swept over **all 2,315** possible answers, playing its own advice:
 
 | Metric | Value |
 | --- | --- |
-| Average guesses to win | **4.12** |
-| Wins within 5 guesses | ~96% |
-| Wins within 6 (standard game) | **99.5%** |
-| Worst case | 6 guesses |
+| Average guesses to win | **3.67** |
+| Wins within 5 guesses | **99.9%** |
+| Wins within 6 (standard game) | **100%** |
+| Worst case | 6 guesses (`BOXER`) |
 
 The one-time cost of building the 14,855 × 2,315 signature table (~600 ms)
 happens once behind the spinner; every guess after that is a fast array lookup
-(~40 ms full pool, ~9 ms on a typical narrowed set).
+(~30 ms over the full pool, single-digit ms on a typical narrowed set).
 
 ## Word lists
 

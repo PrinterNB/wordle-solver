@@ -151,8 +151,7 @@ input[type="text"] {
 }
 input[type="text"]:focus { outline: none; border-color: var(--green); }
 
-.checkline { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-.checkline input { width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; }
+.card-note { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.4; margin: 6px 0 10px; }
 
 .stat {
   display: flex;
