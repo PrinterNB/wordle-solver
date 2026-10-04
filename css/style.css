@@ -270,6 +270,8 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
   appearance: none;
   border: 0;
   padding: 0; /* UA button padding would eat 6px of the fixed-width caps */
+  touch-action: manipulation; /* iOS Safari: rapid repeat taps on ⌫ would
+      otherwise read as a double-tap and zoom the page to the key */
   background: var(--key);
   color: var(--key-text);
   font: inherit;
