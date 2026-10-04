@@ -260,6 +260,7 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
   flex-direction: column;
   gap: clamp(8px, 1.8vw, 14px);
   align-items: center;
+  margin-top: 22px; /* breathing room between the board and the keys */
   user-select: none;
 }
 .key-row { display: flex; gap: 5px; justify-content: center; }
@@ -270,23 +271,23 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
   color: var(--key-text);
   font: inherit;
   font-weight: 700;
-  font-size: 15px;
-  /* fixed caps sized for the 460px column: 10×37 + 9×5 = 415 <= 428;
-     official ratios h≈1.13w. The bottom row may overflow a few px — flex-shrink
-     shaves it invisibly. */
-  width: 37px;
-  height: 42px;
-  flex: 0 1 37px;
+  font-size: 14px;
+  /* fixed caps sized for the 460px column with visible side margins:
+     10×34 + 9×5 = 385 < 428, and the bottom row fits too (413 < 428) so
+     every row keeps identical key widths — like the real game. */
+  width: 34px;
+  height: 38px;
+  flex: 0 1 34px;
   min-width: 0;
-  border-radius: 7px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background .2s, transform .05s;
 }
 /* ENTER / ⌫: wider but the SAME height — keyed by data-key because startGame()
    and paintKey() rewrite className and would strip a "wide" class */
 .key.wide, .key[data-key="enter"], .key[data-key="back"] {
-  width: 51px;
-  flex: 0 1 51px;
+  width: 48px;
+  flex: 0 1 48px;
   font-size: 13px;
   letter-spacing: .04em;
 }
@@ -301,6 +302,6 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
 
 @media (max-width: 380px) {
   :root { --tile: clamp(50px, 16vw, 58px); }
-  .key { width: 29px; height: 33px; flex: 0 1 29px; font-size: 13px; }
-  .key.wide, .key[data-key="enter"], .key[data-key="back"] { width: 40px; flex: 0 1 40px; font-size: 11px; }
+  .key { width: 26px; height: 30px; flex: 0 1 26px; font-size: 12px; }
+  .key.wide, .key[data-key="enter"], .key[data-key="back"] { width: 37px; flex: 0 1 37px; font-size: 10px; }
 }
