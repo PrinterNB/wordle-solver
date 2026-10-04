@@ -267,9 +267,13 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
 .key {
   appearance: none;
   border: 0;
+  padding: 0; /* UA button padding would eat 6px of the fixed-width caps */
   background: var(--key);
   color: var(--key-text);
   font: inherit;
+  /* appearance:none strips the UA text-align:center on buttons — say it back,
+     or ENTER/⌫ labels hang off-center on their caps */
+  text-align: center;
   font-weight: 700;
   font-size: 14px;
   /* fixed caps sized for the 460px column with visible side margins:
