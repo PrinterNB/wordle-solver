@@ -1,7 +1,8 @@
 /* game.js — a playable Wordle clone using the same word list.
  *
- * A random word from the 2,315 NYT answers is the secret (or you enter your
- * own). Submit guesses with the on-screen or physical keyboard; the keyboard
+ * A random word from the current NYT answer pool is the secret (or you set
+ * your own — any word the game accepts, so future puzzle words work too).
+ * Submit guesses with the on-screen or physical keyboard; the keyboard
  * letters tint by their best observed result, and tiles flip green/yellow/gray
  * just like the real game. Six tries.
  */
@@ -110,7 +111,10 @@
       return;
     }
 
-    const colors = W.feedbackFor(guess, answerIndex);
+    // Fast path for pool answers (precomputed tables); generic path for
+    // custom answers outside the answer pool (any word the game accepts).
+    const colors =
+      answerIndex >= 0 ? W.feedbackFor(guess, answerIndex) : W.feedbackWord(guess, answer);
     reveal(row, colors);
 
     if (guess === answer) {
@@ -147,7 +151,10 @@
 
   // ---------- game lifecycle ----------
   function startGame(overrideAnswer) {
-    if (overrideAnswer && W.answerSet.has(overrideAnswer)) answer = overrideAnswer;
+    // Accept any word the game accepts as a secret — including words that
+    // are not (yet) known NYT answers, so future puzzle words work too.
+    if (overrideAnswer && (W.answerSet.has(overrideAnswer) || W.guessSet.has(overrideAnswer)))
+      answer = overrideAnswer;
     else answer = W.answers[(Math.random() * W.N) | 0];
     answerIndex = W.answers.indexOf(answer);
     row = 0; col = 0; current = ""; over = false;
@@ -207,7 +214,7 @@
   newGameBtn.addEventListener("click", () => { customAnswer.value = ""; startGame(); });
   customApply.addEventListener("click", () => {
     const v = (customAnswer.value || "").toLowerCase();
-    if (!W.answerSet.has(v)) { flash("That's not a valid answer word.", true); return; }
+    if (!W.answerSet.has(v) && !W.guessSet.has(v)) { flash("That's not a word the game accepts.", true); return; }
     startGame(v);
   });
 

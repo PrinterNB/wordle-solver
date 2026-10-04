@@ -22,9 +22,15 @@
   );
 
   // Support ?tab=game / #game deep links.
-  const initial = (location.hash || location.search || "solver")
-    .replace(/^[#?&=]+/, "")
-    .split(/[&=]/)
-    .pop();
+  const param = /[?&]tab=([a-z]+)/.exec(location.search || "");
+  const initial = param ? param[1] : (location.hash || "").replace(/^#/, "");
   activate(views[initial] ? initial : "solver");
+
+  // Keep the footer's word-list counts honest — read them off the loaded data.
+  const foot = document.getElementById("wordlist-foot");
+  if (foot && window.WORDLE) {
+    const W = window.WORDLE;
+    foot.textContent =
+      "Word list: " + W.N.toLocaleString() + " official NYT answers · " + W.G.toLocaleString() + " valid guesses";
+  }
 })();

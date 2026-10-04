@@ -45,7 +45,11 @@
     ansCount[i] = countsOf(answers[i]);
   }
   const gusCode = new Array(G);
-  for (let i = 0; i < G; i++) gusCode[i] = toCode(guesses[i]);
+  const gusCount = new Array(G);
+  for (let i = 0; i < G; i++) {
+    gusCode[i] = toCode(guesses[i]);
+    gusCount[i] = countsOf(guesses[i]);
+  }
 
   // Indices of every guess, and of the guesses that are also answer words
   // (the solver's pool: every official answer, so the live game always
@@ -60,7 +64,10 @@
   const guessIndexMap = new Map();
   for (let i = 0; i < G; i++) guessIndexMap.set(guesses[i], i);
   const ansGuessIdx = new Int32Array(N);
-  for (let i = 0; i < N; i++) ansGuessIdx[i] = guessIndexMap.get(answers[i]);
+  for (let i = 0; i < N; i++) {
+    const gi = guessIndexMap.get(answers[i]);
+    ansGuessIdx[i] = gi === undefined ? -1 : gi; // guard: never alias to guesses[0]
+  }
 
   // ---- scoring --------------------------------------------------------
   // Signature: the five 0/1/2 feedback cells packed into one int (base 3).
@@ -111,6 +118,22 @@
     return out;
   }
 
+  // ---- fallback space: word indices into the *guess* vocabulary ------------
+  // If the real answer is newer than our answer list, the candidates are no
+  // longer answer words; we then filter and rank over the full list of words
+  // the live game accepts (every real answer, past or future, is in it).
+  const packColors = (colors) =>
+    colors[0] + colors[1] * 3 + colors[2] * 9 + colors[3] * 27 + colors[4] * 81;
+
+  function filterGuesses(candIdx, played, colors) {
+    const gi = guessIndexMap.get(played);
+    if (gi === undefined) return candIdx.slice(); // played word not in dictionary: no constraint
+    const target = packColors(colors);
+    const out = [];
+    for (const idx of candIdx) if (signature(gusCode[gi], gusCode[idx], gusCount[idx]) === target) out.push(idx);
+    return out;
+  }
+
   // Precomputed signature table: sigMat[gi*N + ci] = feedback signature of
   // guess `gi` against answer `ci` (one byte, 0..242). Building it once costs
   // the full ~600ms sweep but makes every subsequent computeBest a cheap
@@ -140,10 +163,17 @@
     //    once the set is small);
     //  - commonOnly: guesses that are also answer words;
     //  - otherwise: the full allowed-guess vocabulary.
+    // Never re-suggest a word we already played: its feedback is known, so it
+    // can only add information if it is a fresh probe. `exclude` is a Set or
+    // array of words to skip.
+    const ex = o.exclude instanceof Set ? o.exclude : o.exclude ? new Set(o.exclude) : null;
     let consider;
     if (o.candidatesOnly) {
-      consider = new Array(n);
-      for (let i = 0; i < n; i++) consider[i] = ansGuessIdx[candIdx[i]];
+      consider = [];
+      for (let i = 0; i < n; i++) {
+        const gi = ansGuessIdx[candIdx[i]];
+        if (gi >= 0) consider.push(gi);
+      }
     } else {
       consider = o.commonOnly ? commonGuessIndices : allGuessIndices;
     }
@@ -153,6 +183,7 @@
     const results = [];
     for (let k = 0; k < consider.length; k++) {
       const gi = consider[k];
+      if (ex !== null && ex.has(guesses[gi])) continue;
       const base = gi * N;
       hist.fill(0);
       for (let j = 0; j < n; j++) hist[mat[base + candIdx[j]]]++;
@@ -163,14 +194,54 @@
       }
       results.push({ word: guesses[gi], entropy: H });
     }
+    if (results.length === 0 && ex !== null)
+      return computeBest(candIdx, { commonOnly: o.commonOnly, candidatesOnly: o.candidatesOnly, top });
     results.sort((a, b) => b.entropy - a.entropy);
     return results.slice(0, top);
+  }
+
+  // Same ranking, but over a pool of *guess*-vocabulary indices (fallback
+  // mode: the true answer may not be a known NYT answer). The pool is small
+  // by construction, so we score pairs on the fly and only ever suggest one
+  // of the pool's own words — all of which the live game accepts.
+  function computeBestFallback(candIdx, opts) {
+    const o = opts || {};
+    const n = candIdx.length;
+    if (n === 0) return [];
+    const ex = o.exclude instanceof Set ? o.exclude : o.exclude ? new Set(o.exclude) : null;
+    const results = [];
+    const hist = new Int32Array(243);
+    for (const gi of candIdx) {
+      if (ex !== null && ex.has(guesses[gi])) continue;
+      hist.fill(0);
+      for (const ci of candIdx) hist[signature(gusCode[gi], gusCode[ci], gusCount[ci])]++;
+      let H = 0;
+      for (let b = 0; b < 243; b++) {
+        const cnt = hist[b];
+        if (cnt) { const pr = cnt / n; H -= pr * Math.log2(pr); }
+      }
+      results.push({ word: guesses[gi], entropy: H });
+    }
+    if (results.length === 0 && ex !== null) return computeBestFallback(candIdx, null);
+    results.sort((a, b) => b.entropy - a.entropy);
+    return results.slice(0, 5);
   }
 
   // First call pays the one-time table build (~600ms), so defer it off the
   // paint tick; later calls are near-instant.
   function computeBestAsync(candIdx, opts, done) {
     setTimeout(() => done(computeBest(candIdx, opts)), 0);
+  }
+  function computeBestFallbackAsync(candIdx, opts, done) {
+    setTimeout(() => done(computeBestFallback(candIdx, opts)), 0);
+  }
+
+  // Score any two raw 5-letter words (no table lookup) — used when the
+  // secret is a custom word outside the answer pool.
+  function feedbackWord(played, word) {
+    if (!/^[a-z]{5}$/.test(played || "") || !/^[a-z]{5}$/.test(word || ""))
+      throw new Error("feedbackWord needs two 5-letter words");
+    return sigToArr(signature(toCode(played), toCode(word), countsOf(word)));
   }
 
   global.WORDLE = {
@@ -183,11 +254,17 @@
     isValidGuess,
     isValidWordLike,
     allCandidates: () => Array.from({ length: N }, (_, i) => i),
+    allGuesses: () => allGuessIndices.slice(),
     answerWord: (idx) => answers[idx],
+    guessWord: (idx) => guesses[idx],
     feedbackFor,
+    feedbackWord,
     filter,
+    filterGuesses,
     computeBest,
     computeBestAsync,
+    computeBestFallback,
+    computeBestFallbackAsync,
     // helpers for the UI
     COLOR: { gray: 0, yellow: 1, green: 2 },
   };

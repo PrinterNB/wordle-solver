@@ -9,7 +9,8 @@ A small, dependency-free website with two tabs:
   own instead of the suggestion.
 - **🎮 Play** — a fully playable Wordle clone on the same word list, with a
   QWERTY keyboard, flip/shake animations, and keyboard state. Play a random
-  secret or set your own answer word.
+  secret or set your own answer word — any word the real game accepts, not
+  just known past answers.
 
 No build step and no libraries — just HTML/CSS/JS. Open `index.html` directly,
 or serve the folder (e.g. `python -m http.server` / `npx serve`).
@@ -20,13 +21,22 @@ The solver plays **maximum information gain** (Shannon entropy): on each turn it
 scores every allowed guess by the entropy of the feedback it would produce over
 the remaining possible answers, and picks the guess that maximizes that.
 
-- **Vocabulary:** the solver suggests only from the official answer list — every
-  word NYT has actually used as a puzzle (**2,376** words) — which is guaranteed
-  to be accepted by the live game. (The wider **14,856**-word guess dictionary is
-  still used to validate what you type, but it's not a safe pool to suggest
-  from because it also contains obscure words the live game may reject.)
+- **Vocabulary:** in normal mode the solver suggests only from the official answer
+  list — every word NYT has actually used as a puzzle (**2,376** words) — which is
+  guaranteed to be accepted by the live game. The wider **14,856**-word guess
+  dictionary validates everything you type; it becomes the suggestion pool only in
+  the widened fallback mode described below, where no known answer fits.
+- **No replays:** a word you already played is never suggested again — it can add
+  no new information.
 - **Candidate pool:** the same **2,376** words NYT has actually used as answers,
   so the secret can't be something the solver has never heard of.
+- **Future answers:** if your reported colors rule out *every* known answer
+  (which happens when the live puzzle is newer than the answer list), the
+  solver doesn't reject them — it replays your whole history against the full
+  **14,856**-word dictionary the game accepts and keeps solving from there.
+  Every real Wordle answer, past or future, is in that dictionary, so the
+  current puzzle is always findable. The page says when it has switched to
+  this widened mode.
 - **Feedback** uses the exact two-pass Wordle scoring (greens first, then
   yellows left-to-right against a shared letter pool), so duplicate letters are
   handled identically to the real game.
@@ -77,6 +87,7 @@ js/solver.js        the Solver tab
 js/game.js          the Play Wordle tab
 js/app.js           tab switching
 scripts/build-words.mjs  regenerates js/words.js
+scripts/test-engine.mjs  regression tests for the engine (run: node scripts/test-engine.mjs)
 ```
 
 ## Notes
