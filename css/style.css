@@ -14,7 +14,7 @@
   --gray: #6f7076;
 
   --key: #919599;          /* official NYT unplayed-key gray */
-  --key-hit: #787c7f;      /* official grayed-after-play key */
+  --key-hit: #565b5e;      /* grayed-after-play key: clearly darker than idle caps */
   --key-text: #ffffff;
 
 
@@ -28,6 +28,8 @@ html, body {
   margin: 0;
   padding: 0;
 }
+
+html { background: var(--bg); } /* fallback so no white flashes outside the body canvas */
 
 body {
   background: radial-gradient(1200px 600px at 50% -10%, #23232a 0%, var(--bg) 55%);
