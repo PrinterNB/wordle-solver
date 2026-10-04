@@ -13,7 +13,8 @@
   --yellow: #c9b458;
   --gray: #6f7076;
 
-  --key: #8b8b94;
+  --key: #919599;          /* official NYT unplayed-key gray */
+  --key-hit: #787c7f;      /* official grayed-after-play key */
   --key-text: #ffffff;
 
   --radius: 12px;
@@ -259,7 +260,7 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
   gap: 8px;
   user-select: none;
 }
-.key-row { display: flex; gap: 6px; justify-content: center; }
+.key-row { display: flex; gap: 10px; justify-content: center; }
 .key {
   appearance: none;
   border: 0;
@@ -267,18 +268,18 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
   color: var(--key-text);
   font: inherit;
   font-weight: 700;
-  font-size: 16px;
-  height: 58px;
+  font-size: 17px;
+  height: 62px;                 /* taller than wide, like the official caps */
   flex: 1;
   min-width: 0;
-  border-radius: 8px;
+  border-radius: 13px;
   cursor: pointer;
   transition: background .2s, transform .05s;
 }
-.key.wide { flex: 1.7; font-size: 13px; letter-spacing: .04em; }
+.key.wide { flex: 1.45; font-size: 14px; letter-spacing: .04em; }
 .key:hover { filter: brightness(1.12); }
 .key:active { transform: scale(.96); }
-.key.gray   { background: #3a3a40; color: #777; }
+.key.gray   { background: var(--key-hit); }
 .key.yellow { background: var(--yellow); color: #201d0a; }
 .key.green  { background: var(--green);  color: #fff; }
 

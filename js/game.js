@@ -179,9 +179,9 @@
 
   // ---------- on-screen keyboard ----------
   const LAYOUT = [
-    { back: true, keys: "qwertyuiop" },
+    { keys: "qwertyuiop" },
     { keys: "asdfghjkl" },
-    { enter: true, keys: "zxcvbnm" },
+    { enter: true, keys: "zxcvbnm", back: true }, // official placement: ENTER first, ⌫ last
   ];
 
   function buildKeyboard() {
@@ -189,9 +189,9 @@
     for (const ln of LAYOUT) {
       const rowEl = document.createElement("div");
       rowEl.className = "key-row";
-      if (ln.back) rowEl.appendChild(keyBtn("⌫", "back", "wide"));
-      for (const k of ln.keys) rowEl.appendChild(keyBtn(k.toUpperCase(), k, ""));
       if (ln.enter) rowEl.appendChild(keyBtn("ENTER", "enter", "wide"));
+      for (const k of ln.keys) rowEl.appendChild(keyBtn(k.toUpperCase(), k, ""));
+      if (ln.back) rowEl.appendChild(keyBtn("⌫", "back", "wide"));
       frag.appendChild(rowEl);
     }
     keyboard.appendChild(frag);
