@@ -17,6 +17,7 @@
   --key-hit: #787c7f;      /* official grayed-after-play key */
   --key-text: #ffffff;
 
+
   --radius: 12px;
   --tile: clamp(52px, 16vw, 62px);
 }
@@ -257,10 +258,11 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
 #game-keyboard {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: clamp(8px, 1.8vw, 14px);
+  align-items: center;
   user-select: none;
 }
-.key-row { display: flex; gap: 10px; justify-content: center; }
+.key-row { display: flex; gap: 5px; justify-content: center; }
 .key {
   appearance: none;
   border: 0;
@@ -268,15 +270,26 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
   color: var(--key-text);
   font: inherit;
   font-weight: 700;
-  font-size: 17px;
-  height: 62px;                 /* taller than wide, like the official caps */
-  flex: 1;
+  font-size: 15px;
+  /* fixed caps sized for the 460px column: 10×37 + 9×5 = 415 <= 428;
+     official ratios h≈1.13w. The bottom row may overflow a few px — flex-shrink
+     shaves it invisibly. */
+  width: 37px;
+  height: 42px;
+  flex: 0 1 37px;
   min-width: 0;
-  border-radius: 13px;
+  border-radius: 7px;
   cursor: pointer;
   transition: background .2s, transform .05s;
 }
-.key.wide { flex: 1.45; font-size: 14px; letter-spacing: .04em; }
+/* ENTER / ⌫: wider but the SAME height — keyed by data-key because startGame()
+   and paintKey() rewrite className and would strip a "wide" class */
+.key.wide, .key[data-key="enter"], .key[data-key="back"] {
+  width: 51px;
+  flex: 0 1 51px;
+  font-size: 13px;
+  letter-spacing: .04em;
+}
 .key:hover { filter: brightness(1.12); }
 .key:active { transform: scale(.96); }
 .key.gray   { background: var(--key-hit); }
@@ -288,5 +301,6 @@ input[type="text"]:focus { outline: none; border-color: var(--green); }
 
 @media (max-width: 380px) {
   :root { --tile: clamp(50px, 16vw, 58px); }
-  .key { font-size: 14px; }
+  .key { width: 29px; height: 33px; flex: 0 1 29px; font-size: 13px; }
+  .key.wide, .key[data-key="enter"], .key[data-key="back"] { width: 40px; flex: 0 1 40px; font-size: 11px; }
 }
